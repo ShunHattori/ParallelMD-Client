@@ -28,7 +28,8 @@ void setup()
   // put your setup code here, to run once:
   //initDIPSwitch();
   //readDIPSwitch();
-  testCase_init(); //serial initialize, recNum setting
+  Serial.begin(256000);
+  recNum = 2;
   changePWMFreqency();
 }
 
@@ -51,7 +52,7 @@ int receivePacket()
     return 1; //data not ready
 
   //#storing datas
-  uint8_t dataBuffer[4];
+  uint8_t dataBuffer[5];
   dataBuffer[0] = MD_Slave_Bus.read(); //receive front byte((must have been storing recNum))
 
   //#recNum checking
@@ -59,27 +60,32 @@ int receivePacket()
   if (dataBuffer[0] != recNum)
     return 2; //host sent datas to other MD slave
 
-  while (!(MD_Slave_Bus.available() > 2)) //waiting ready for main frame arrival
+  while (!(MD_Slave_Bus.available() > 3)) //waiting ready for main frame arrival
     continue;
 
-  for (uint8_t dataIndex = 1; dataIndex < 4; dataIndex++) //read main data frame
+  for (uint8_t dataIndex = 1; dataIndex < 5; dataIndex++) //read main data frame
   {
     dataBuffer[dataIndex] = MD_Slave_Bus.read();
   }
 
-  // Serial.print(dataBuffer[0]);
-  // Serial.print('\t');
-  // Serial.print(dataBuffer[1]);
-  // Serial.print('\t');
-  // Serial.print(dataBuffer[2]);
-  // Serial.print('\t');
-  // Serial.print(dataBuffer[3]);
-  // Serial.println("");
+  Serial.print(dataBuffer[0]);
+  Serial.print('\t');
+  Serial.print(dataBuffer[1]);
+  Serial.print('\t');
+  Serial.print(dataBuffer[2]);
+  Serial.print('\t');
+  Serial.print(dataBuffer[3]);
+  Serial.print('\t');
+  Serial.print(dataBuffer[4]);
+  Serial.println("");
 
   //#CheckSum checking
-  uint8_t bufferCheckSum = dataBuffer[0] ^ dataBuffer[1] ^ dataBuffer[2];
-  if (bufferCheckSum != dataBuffer[3])
-    return 3; //CheckSum Error
+  uint8_t bufferCheckSum1 = dataBuffer[0] ^ dataBuffer[1] ^ dataBuffer[2];
+  if (bufferCheckSum1 != dataBuffer[3])
+    return 3; //CheckSum(1) Error
+  uint8_t bufferCheckSum2 = dataBuffer[0] + dataBuffer[1] + dataBuffer[2];
+  if (bufferCheckSum2 != dataBuffer[4])
+    return 4; //CheckSum(2) Error
 
   //#storing pwm datas
   pwm[0] = dataBuffer[1];
@@ -91,11 +97,11 @@ void applyPWM()
 {
   analogWrite(pin1, pwm[0]);
   analogWrite(pin2, pwm[1]);
-
-  Serial.print(pwm[0]);
-  Serial.print('\t');
-  Serial.print(pwm[1]);
-  Serial.print("\r\n");
+  Serial.println("went through");
+  // Serial.print(pwm[0]);
+  // Serial.print('\t');
+  // Serial.print(pwm[1]);
+  // Serial.print("\r\n");
 }
 
 void initDIPSwitch()
@@ -116,10 +122,4 @@ void readDIPSwitch()
 
 void changePWMFreqency()
 {
-}
-
-void testCase_init()
-{
-  Serial.begin(256000);
-  recNum = 2;
 }
