@@ -1,17 +1,21 @@
 #include <Arduino.h>
 #include "SoftwareSerial.h"
 
-SoftwareSerial MD_Slave_Bus(52, 53);
-
 //ref 03 https://docs.rs-online.com/bd24/0900766b814225ff.pdf
-#define DIPPin1 0
-#define DIPPin2 0
-#define DIPPin4 0
-#define DIPPin8 0
+#define DIPPin1 A5
+#define DIPPin2 A4
+#define DIPPin4 A3
+#define DIPPin8 A2
 
 //#PWM pin
-#define pin1 6
-#define pin2 7
+#define PWM1 11
+#define PWM2 10
+#define SHUTDOWN 12
+
+#define SS_RX 8
+#define SS_TX 9
+
+SoftwareSerial MD_Slave_Bus(SS_RX, SS_TX);
 
 uint8_t recNum, pwm[2];
 
@@ -24,13 +28,11 @@ void testCase_init();
 
 void setup()
 {
-  MD_Slave_Bus.begin(9600);
   // put your setup code here, to run once:
-  //initDIPSwitch();
-  //readDIPSwitch();
-  Serial.begin(256000);
-  recNum = 2;
   changePWMFreqency();
+  initDIPSwitch();
+  readDIPSwitch();
+  MD_Slave_Bus.begin(9600);
 }
 
 void loop()
@@ -68,16 +70,16 @@ int receivePacket()
     dataBuffer[dataIndex] = MD_Slave_Bus.read();
   }
 
-  Serial.print(dataBuffer[0]);
-  Serial.print('\t');
-  Serial.print(dataBuffer[1]);
-  Serial.print('\t');
-  Serial.print(dataBuffer[2]);
-  Serial.print('\t');
-  Serial.print(dataBuffer[3]);
-  Serial.print('\t');
-  Serial.print(dataBuffer[4]);
-  Serial.println("");
+  // Serial.print(dataBuffer[0]);
+  // Serial.print('\t');
+  // Serial.print(dataBuffer[1]);
+  // Serial.print('\t');
+  // Serial.print(dataBuffer[2]);
+  // Serial.print('\t');
+  // Serial.print(dataBuffer[3]);
+  // Serial.print('\t');
+  // Serial.print(dataBuffer[4]);
+  // Serial.println("");
 
   //#CheckSum checking
   uint8_t bufferCheckSum1 = dataBuffer[0] ^ dataBuffer[1] ^ dataBuffer[2];
@@ -95,9 +97,9 @@ int receivePacket()
 
 void applyPWM()
 {
-  analogWrite(pin1, pwm[0]);
-  analogWrite(pin2, pwm[1]);
-  Serial.println("went through");
+  analogWrite(PWM1, pwm[0]);
+  analogWrite(PWM2, pwm[1]);
+  //Serial.println("went through");
   // Serial.print(pwm[0]);
   // Serial.print('\t');
   // Serial.print(pwm[1]);
