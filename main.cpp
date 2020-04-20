@@ -1,5 +1,6 @@
 #include <Arduino.h>
 #include "SoftwareSerial.h"
+#include "PWMfrequency.h"
 
 //ref 03 https://docs.rs-online.com/bd24/0900766b814225ff.pdf
 #define DIPPin1 A5
@@ -124,4 +125,6 @@ void readDIPSwitch()
 
 void changePWMFreqency()
 {
+  setPwmFrequencyMEGA2560(PWM1, 1);
+  setPwmFrequencyMEGA2560(PWM2, 1);
 }
