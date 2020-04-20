@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include "SoftwareSerial.h"
 #include "PWMfrequency.h"
+#include "DebounceSwitch.h"
 
 //ref 03 https://docs.rs-online.com/bd24/0900766b814225ff.pdf
 #define DIPPin1 A5
@@ -17,6 +18,10 @@
 #define SS_TX 9
 
 SoftwareSerial MD_Slave_Bus(SS_RX, SS_TX);
+DebounceSwitch DIP1(DIPPin1, DebounceSwitch::NONE);
+DebounceSwitch DIP2(DIPPin2, DebounceSwitch::NONE);
+DebounceSwitch DIP4(DIPPin4, DebounceSwitch::NONE);
+DebounceSwitch DIP8(DIPPin8, DebounceSwitch::NONE);
 
 uint8_t recNum, pwm[2];
 
@@ -109,18 +114,22 @@ void applyPWM()
 
 void initDIPSwitch()
 {
-  pinMode(DIPPin1, INPUT);
-  pinMode(DIPPin2, INPUT);
-  pinMode(DIPPin4, INPUT);
-  pinMode(DIPPin8, INPUT);
+  for (size_t i = 0; i < 5; i++)
+  {
+    delayMicroseconds(5);
+    DIP1.update();
+    DIP2.update();
+    DIP4.update();
+    DIP8.update();
+  }
 }
 
 void readDIPSwitch()
 {
-  recNum = int(digitalRead(DIPPin8)) << 3 ||
-           int(digitalRead(DIPPin4)) << 2 ||
-           int(digitalRead(DIPPin2)) << 1 ||
-           int(digitalRead(DIPPin1));
+  recNum = DIP8.stats() << 3 ||
+           DIP4.stats() << 2 ||
+           DIP2.stats() << 1 ||
+           DIP1.stats();
 }
 
 void changePWMFreqency()
